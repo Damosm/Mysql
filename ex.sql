@@ -86,8 +86,8 @@ mysql -u root -p --local-infile
 
 SET @@global.local_infile = 1;
 
-LOAD DATA LOCAL INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Data/dataia_nancy/BASE1.txt'
-INTO TABLE dataia_Nancy
+LOAD DATA LOCAL INFILE 'C:/Users/utilisateur/Documents/Git/Mysql/base1.txt'
+INTO TABLE dataia_nancy
 FIELDS TERMINATED BY ';'
 LINES TERMINATED BY '\n'
 ;
@@ -102,3 +102,67 @@ insert into (resilies,parcours,anciennete,demenagement,sinistre,devis,desequip,r
 
 #######################################
 select count(resilies) as resilies from dataia_Nancy;
+###########################################""
+
+CREATE TABLE `dataia_nancy`.`train` (
+ ID INT NULL,
+ SHIPPING_MODE VARCHAR(30) NULL,
+ SHIPPING_PRICE VARCHAR(30) NULL,
+ WARRANTIES_FLG VARCHAR(30) NULL,
+ WARRANTIES_PRICE VARCHAR(30) NULL,
+ CARD_PAYMENT INT NULL,
+ COUPON_PAYMENT INT NULL,
+ RSP_PAYMENT INT NULL,
+ WALLET_PAYMENT INT NULL,
+ PRICECLUB_STATUS VARCHAR(30) NULL,
+ REGISTRATION_DATE INT NULL,
+ PURCHASE_COUNT VARCHAR(30) NULL,
+ BUYER_BIRTHDAY_DATE FLOAT NULL,
+ BUYER_DEPARTMENT INT NULL,
+ BUYING_DATE VARCHAR(30) NULL,
+ SELLER_SCORE_COUNT VARCHAR(30) NULL,
+ SELLER_SCORE_AVERAGE FLOAT NULL,
+ SELLER_COUNTRY VARCHAR(30) NULL,
+ SELLER_DEPARTMENT INT NULL,
+ PRODUCT_TYPE VARCHAR(30) NULL,
+ PRODUCT_FAMILY VARCHAR(30) NULL,
+ ITEM_PRICE VARCHAR(30) NULL);
+
+ LOAD DATA LOCAL INFILE 'C:/Users/utilisateur/Documents/Git/Mysql/input_train.csv'
+INTO TABLE train
+FIELDS TERMINATED BY ','
+LINES TERMINATED BY '\n'
+ignore 1 lines
+;
+###############################################""
+1)    Quel est le mode de livraison le plus courant ?
+
+select SHIPPING_MODE, count(*) as total
+from train
+group by SHIPPING_MODE 
+order by count(*) desc
+limit 1;
+
+2)    Combien de ventes y-a-t-il eu par famille de produit ?
+
+select `PRODUCT_FAMILY`, count(*) as total
+from train
+group by PRODUCT_FAMILY 
+order by count(*) desc
+;
+
+3)    Quel est l’âge moyen des vendeurs français ?
+
+select  2020-avg(BUYER_BIRTHDAY_DATE) as 'age moyen' from train where `SELLER_COUNTRY` like '%FRANCE%' and BUYER_BIRTHDAY_DATE>1;
+
+4)    Parmi les achats qui ont eu lieu par carte bancaire, combien ont eu lieu en septembre 2017 ?
+
+select sum(CARD_PAYMENT) as total , BUYING_DATE from train where CARD_PAYMENT=1 and BUYING_DATE like'9/2017';
+
+5)    Quel est le nombre moyen d’achat effectué par mode de livraison ?
+
+select SHIPPING_MODE, count(*)/10000 as moyenne
+from train
+group by SHIPPING_MODE 
+order by count(*) desc
+;
