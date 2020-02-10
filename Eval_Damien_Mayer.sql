@@ -1,0 +1,243 @@
+mysql -u root -p --local-infile
+
+
+
+SET @@global.local_infile = 1;
+
+
+
+CREATE TABLE `data`.`client_0` (
+ ID INT NULL,
+ SHIPPING_MODE VARCHAR(30) NULL,
+ SHIPPING_PRICE VARCHAR(30) NULL,
+ WARRANTIES_FLG VARCHAR(30) NULL,
+ WARRANTIES_PRICE VARCHAR(30) NULL,
+ CARD_PAYMENT INT NULL,
+ COUPON_PAYMENT INT NULL,
+ RSP_PAYMENT INT NULL,
+ WALLET_PAYMENT INT NULL,
+ PRICECLUB_STATUS VARCHAR(30) NULL,
+ REGISTRATION_DATE INT NULL,
+ PURCHASE_COUNT VARCHAR(30) NULL,
+ BUYER_BIRTHDAY_DATE FLOAT NULL,
+ BUYER_DEPARTMENT INT NULL,
+ BUYING_DATE VARCHAR(30) NULL,
+ SELLER_SCORE_COUNT VARCHAR(30) NULL,
+ SELLER_SCORE_AVERAGE FLOAT NULL,
+ SELLER_COUNTRY VARCHAR(30) NULL,
+ SELLER_DEPARTMENT INT NULL,
+ PRODUCT_TYPE VARCHAR(30) NULL,
+ PRODUCT_FAMILY VARCHAR(30) NULL,
+ ITEM_PRICE VARCHAR(30) NULL
+ KEY VARCHAR(30) NULL);
+
+ LOAD DATA LOCAL INFILE 'C:/Users/utilisateur/Documents/Git/Mysql/Base_eval.csv'
+INTO TABLE client_0
+FIELDS TERMINATED BY ';'
+LINES TERMINATED BY '\n'
+ignore 1 lines
+;
+#################################################
+1)
+SELECT   COUNT(*) AS nbr_doublon, SHIPPING_MODE, SHIPPING_PRICE, WARRANTIES_FLG,WARRANTIES_PRICE,CARD_PAYMENT,COUPON_PAYMENT,RSP_PAYMENT, WALLET_PAYMENT,PRICECLUB_STATUS,
+REGISTRATION_DATE,PURCHASE_COUNT,BUYER_BIRTHDAY_DATE,BUYER_DEPARTMENT,BUYING_DATE,SELLER_SCORE_COUNT,SELLER_SCORE_AVERAGE,SELLER_COUNTRY,SELLER_DEPARTMENT,PRODUCT_TYPE,
+PRODUCT_FAMILY,ITEM_PRICE,FALSEKEY
+FROM     client_0
+GROUP BY SHIPPING_MODE, SHIPPING_PRICE, WARRANTIES_FLG,WARRANTIES_PRICE,CARD_PAYMENT,COUPON_PAYMENT,RSP_PAYMENT, WALLET_PAYMENT,PRICECLUB_STATUS,
+REGISTRATION_DATE,PURCHASE_COUNT,BUYER_BIRTHDAY_DATE,BUYER_DEPARTMENT,BUYING_DATE,SELLER_SCORE_COUNT,SELLER_SCORE_AVERAGE,SELLER_COUNTRY,SELLER_DEPARTMENT,PRODUCT_TYPE,
+PRODUCT_FAMILY,ITEM_PRICE,FALSEKEY
+HAVING   COUNT(*) > 1;
+###########################################################
+2)
+
+DELETE client_0 FROM client_0 
+LEFT OUTER JOIN (
+        SELECT MIN(id) as 
+    id,
+    SHIPPING_MODE ,
+    SHIPPING_PRICE ,
+    WARRANTIES_FLG ,
+    WARRANTIES_PRICE,
+    CARD_PAYMENT,
+    COUPON_PAYMENT,
+    RSP_PAYMENT ,
+    WALLET_PAYMENT ,
+    PRICECLUB_STATUS ,
+    REGISTRATION_DATE ,
+    PURCHASE_COUNT ,
+    BUYER_BIRTHDAY_DATE ,
+    BUYER_DEPARTMENT ,
+    BUYING_DATE ,
+    SELLER_SCORE_COUNT ,
+    SELLER_SCORE_AVERAGE ,
+    SELLER_COUNTRY ,
+    SELLER_DEPARTMENT ,
+    PRODUCT_TYPE ,
+    PRODUCT_FAMILY ,
+    ITEM_PRICE 
+        FROM client_0
+        GROUP BY
+    SHIPPING_MODE ,
+    SHIPPING_PRICE ,
+    WARRANTIES_FLG ,
+    WARRANTIES_PRICE,
+    CARD_PAYMENT,
+    COUPON_PAYMENT,
+    RSP_PAYMENT ,
+    WALLET_PAYMENT ,
+    PRICECLUB_STATUS ,
+    REGISTRATION_DATE ,
+    PURCHASE_COUNT ,
+    BUYER_BIRTHDAY_DATE ,
+    BUYER_DEPARTMENT ,
+    BUYING_DATE ,
+    SELLER_SCORE_COUNT ,
+    SELLER_SCORE_AVERAGE ,
+    SELLER_COUNTRY ,
+    SELLER_DEPARTMENT ,
+    PRODUCT_TYPE ,
+    PRODUCT_FAMILY ,
+    ITEM_PRICE 
+    ) as t1 
+    ON client_0.id = t1.id
+WHERE t1.id IS NULL;
+#################################################################
+3)
+select count(seller_country) from client_0 where SELLER_COUNTRY <> '%FRANCE%';
+
+#########################################
+4)
+create table vendeur1 (select seller_country from client_0 where SELLER_COUNTRY <> 'FRANCE_ METROPOLITAN');
+create table vendeur2 (select seller_country from client_0 where SELLER_COUNTRY like '%FRANCE%');
+create table vendeur3 (select seller_country from client_0 where SELLER_COUNTRY like 'FRANCE_ METROPOLITAN');
+
+########################################
+5)
+
+select seller_country, BUYING_DATE, count(*) from client_0 
+where SELLER_COUNTRY like '%FRANCE%' and BUYING_DATE like '%MAI%' and 
+SELLER_SCORE_AVERAGE > (select avg(SELLER_SCORE_AVERAGE) from client_0)
+group by 1
+;
+###################################""
+6)
+SELECT PRODUCT_FAMILY,
+SUM(CASE
+        WHEN PURCHASE_COUNT = '50<100' THEN 75
+        WHEN PURCHASE_COUNT = '5<20' THEN 12.5
+        WHEN PURCHASE_COUNT = '20<50' THEN 35
+        WHEN PURCHASE_COUNT = '100<500' THEN 300
+        WHEN PURCHASE_COUNT = '>500' THEN 500
+        WHEN PURCHASE_COUNT = '<5' THEN 5
+    END) AS OSEF
+FROM client_0
+GROUP BY PRODUCT_FAMILY
+order by count(*) desc;
+###########################################
+7)
+SELECT SELLER_COUNTRY, 
+SUM(CASE
+        WHEN PURCHASE_COUNT = '50<100' THEN 75
+        WHEN PURCHASE_COUNT = '5<20' THEN 12.5
+        WHEN PURCHASE_COUNT = '20<50' THEN 35
+        WHEN PURCHASE_COUNT = '100<500' THEN 300
+        WHEN PURCHASE_COUNT = '>500' THEN 500
+        WHEN PURCHASE_COUNT = '<5' THEN 5
+    END) AS nbPodVendu
+FROM client_0
+where SELLER_COUNTRY <> 'FRANCE_ METROPOLITAN'
+union
+SELECT SELLER_COUNTRY,
+SUM(CASE
+        WHEN PURCHASE_COUNT = '50<100' THEN 75
+        WHEN PURCHASE_COUNT = '5<20' THEN 12.5
+        WHEN PURCHASE_COUNT = '20<50' THEN 35
+        WHEN PURCHASE_COUNT = '100<500' THEN 300
+        WHEN PURCHASE_COUNT = '>500' THEN 500
+        WHEN PURCHASE_COUNT = '<5' THEN 5
+    END) AS nbPodVendu
+FROM client_0
+where SELLER_COUNTRY like 'FRANCE_ METROPOLITAN'
+
+;
+#######################
+8)
+create table produit_1(SELECT PRODUCT_FAMILY,PRODUCT_TYPE,seller_country,
+SUM(CASE
+        WHEN PURCHASE_COUNT = '50<100' THEN 75
+        WHEN PURCHASE_COUNT = '5<20' THEN 12.5
+        WHEN PURCHASE_COUNT = '20<50' THEN 35
+        WHEN PURCHASE_COUNT = '100<500' THEN 300
+        WHEN PURCHASE_COUNT = '>500' THEN 500
+        WHEN PURCHASE_COUNT = '<5' THEN 5
+    END)  * (CASE
+        WHEN ITEM_PRICE = '<10' THEN 5
+        WHEN ITEM_PRICE = '10<20' THEN 15
+        WHEN ITEM_PRICE = '20<50' THEN 35
+        WHEN ITEM_PRICE = '50<100' THEN 75
+        WHEN ITEM_PRICE = '100<500' THEN 300
+        WHEN ITEM_PRICE = '500<1000' THEN 750
+        WHEN ITEM_PRICE = '1000<5000' THEN 3000
+        WHEN ITEM_PRICE = '>5000' THEN 6000
+        
+    END) AS montant
+FROM client_0
+inner join vendeur1 on client_0.seller_country = vendeur1.seller_country
+group BY 2
+order by count(*) desc)
+;
+###################################
+9)
+create table produit_2(SELECT PRODUCT_FAMILY,PRODUCT_TYPE,
+SUM(CASE
+        WHEN PURCHASE_COUNT = '50<100' THEN 75
+        WHEN PURCHASE_COUNT = '5<20' THEN 12.5
+        WHEN PURCHASE_COUNT = '20<50' THEN 35
+        WHEN PURCHASE_COUNT = '100<500' THEN 300
+        WHEN PURCHASE_COUNT = '>500' THEN 500
+        WHEN PURCHASE_COUNT = '<5' THEN 5
+    END)  * (CASE
+        WHEN ITEM_PRICE = '<10' THEN 5
+        WHEN ITEM_PRICE = '10<20' THEN 15
+        WHEN ITEM_PRICE = '20<50' THEN 35
+        WHEN ITEM_PRICE = '50<100' THEN 75
+        WHEN ITEM_PRICE = '100<500' THEN 300
+        WHEN ITEM_PRICE = '500<1000' THEN 750
+        WHEN ITEM_PRICE = '1000<5000' THEN 3000
+        WHEN ITEM_PRICE = '>5000' THEN 6000
+        
+    END) AS montant
+FROM client_0
+inner join vendeur2 on client_0.seller_country = vendeur2.seller_country
+group BY 2
+order by count(*) desc)
+;
+####################################################################
+10)
+create table produit_3(SELECT PRODUCT_FAMILY,PRODUCT_TYPE,
+SUM(CASE
+        WHEN PURCHASE_COUNT = '50<100' THEN 75
+        WHEN PURCHASE_COUNT = '5<20' THEN 12.5
+        WHEN PURCHASE_COUNT = '20<50' THEN 35
+        WHEN PURCHASE_COUNT = '100<500' THEN 300
+        WHEN PURCHASE_COUNT = '>500' THEN 500
+        WHEN PURCHASE_COUNT = '<5' THEN 5
+    END)  * (CASE
+        WHEN ITEM_PRICE = '<10' THEN 5
+        WHEN ITEM_PRICE = '10<20' THEN 15
+        WHEN ITEM_PRICE = '20<50' THEN 35
+        WHEN ITEM_PRICE = '50<100' THEN 75
+        WHEN ITEM_PRICE = '100<500' THEN 300
+        WHEN ITEM_PRICE = '500<1000' THEN 750
+        WHEN ITEM_PRICE = '1000<5000' THEN 3000
+        WHEN ITEM_PRICE = '>5000' THEN 6000
+        
+    END) AS montant
+FROM client_0
+inner join vendeur1 on client_0.seller_country = vendeur1.seller_country
+inner join vendeur2 on vendeur1.seller_country = vendeur2.seller_country
+group BY 2
+order by count(*) desc)
+;
+
+

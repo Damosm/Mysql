@@ -134,7 +134,7 @@ FIELDS TERMINATED BY ','
 LINES TERMINATED BY '\n'
 ignore 1 lines
 ;
-###############################################""
+###############################################
 1)    Quel est le mode de livraison le plus courant ?
 
 select SHIPPING_MODE, count(*) as total
@@ -150,6 +150,20 @@ from train
 group by PRODUCT_FAMILY 
 order by count(*) desc
 ;
+nombre d articles vendus par famille de produit :
+
+SELECT PRODUCT_FAMILY,
+SUM(CASE
+        WHEN PURCHASE_COUNT = '50<100' THEN 75
+        WHEN PURCHASE_COUNT = '5<20' THEN 12.5
+        WHEN PURCHASE_COUNT = '20<50' THEN 35
+        WHEN PURCHASE_COUNT = '100<500' THEN 300
+        WHEN PURCHASE_COUNT = '>500' THEN 500
+        WHEN PURCHASE_COUNT = '<5' THEN 5
+    END) AS OSEF
+FROM train
+GROUP BY PRODUCT_FAMILY
+order by count(*) desc;
 
 3)    Quel est l’âge moyen des vendeurs français ?
 
